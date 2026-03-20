@@ -1,32 +1,29 @@
 # skills/
 
-This directory is reserved for **agent-consumable skills** related to mail ingress.
+This directory stays top-level on purpose.
 
-## Why it is top-level
+## Why it still exists
 
-The project is being organized so that `skills/` can later become its own repository or distributable package with minimal reshaping.
+`mail-listener` keeps a **skill-first boundary** even though this round only packages the current Gmail IMAP IDLE implementation.
 
-That means:
+That means `skills/` should remain easy to split into its own repository or package later.
 
-- avoid unnecessary imports from deep repository internals
-- document any required contracts explicitly
-- keep prompts, metadata, examples, and packaging notes close to each skill
+## Current expectation
 
-## Suggested future layout
+For now, keep this directory lightweight:
 
-```text
-skills/
-├─ README.md
-├─ mail-listener/
-│  ├─ SKILL.md
-│  ├─ examples/
-│  └─ references/
-└─ mail-router/
-   ├─ SKILL.md
-   ├─ examples/
-   └─ references/
-```
+- contract notes
+- prompts or templates
+- packaging notes
+- examples that do not depend on secrets
 
-## Packaging note
+## Avoid
 
-If this directory is split into a standalone repository later, keep the stable boundary at the event contract and adapter capability descriptions rather than at provider-specific implementation details.
+- hard wiring skills to deep repository internals
+- embedding runtime secrets
+- assuming features that are not implemented in the current repository
+
+## Current implementation note
+
+The current runtime implementation is the Gmail IMAP IDLE adapter under `src/mail_listener/adapters/gmail/`.
+Future skills should consume normalized events rather than reaching directly into adapter internals when possible.

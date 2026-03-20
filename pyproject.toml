@@ -3,29 +3,47 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "mail-ingress-kit"
+name = "mail-listener"
 version = "0.1.0"
-description = "General mail ingress and mailbox listener foundation for humans and agents."
+description = "Mailbox listener project with Gmail IMAP IDLE as the current implementation."
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.9"
 license = { text = "Apache-2.0" }
-authors = [
-  { name = "mcagentclaw" }
-]
-keywords = ["mail", "mailbox", "ingress", "listener", "events", "agents"]
+authors = [{ name = "mcagentclaw" }]
+keywords = ["mail", "mailbox", "listener", "gmail", "imap", "idle"]
 classifiers = [
-  "Development Status :: 2 - Pre-Alpha",
+  "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
   "License :: OSI Approved :: Apache Software License",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
   "Topic :: Communications :: Email",
-  "Topic :: Software Development :: Libraries"
+  "Topic :: Software Development :: Libraries",
 ]
 
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "ruff>=0.11.0",
+]
+
+[project.scripts]
+mail-listener = "mail_listener.cli.main:run"
+
 [tool.setuptools]
-package-dir = {"" = "src"}
+package-dir = { "" = "src" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]

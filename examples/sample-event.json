@@ -1,22 +1,8 @@
 {
   "event_type": "mail.message.received",
-  "provider": "example",
-  "mailbox": "inbox@example.test",
-  "message": {
-    "subject": "Sample inbound message",
-    "from": [
-      {
-        "name": "Example Sender",
-        "address": "sender@example.test"
-      }
-    ],
-    "to": [
-      {
-        "name": "Inbox",
-        "address": "inbox@example.test"
-      }
-    ],
-    "message_id": "<example-message-id@example.test>"
-  },
-  "received_at": "2026-03-20T12:00:00+08:00"
+  "provider": "gmail-imap-idle",
+  "mailbox": "listener@example.test",
+  "exists_count": 42,
+  "previous_exists_count": 41,
+  "received_at": "2026-03-20T04:00:00+00:00"
 }

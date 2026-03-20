@@ -1,42 +1,50 @@
 # Architecture Notes
 
-## Intent
+## Goal of this round
 
-This project is structured around a provider-neutral mail ingress pipeline.
+Extract the existing Gmail IMAP IDLE listener into a standalone repository named `mail-listener`, without expanding product scope.
 
-## Boundaries
+## Layers
 
-### Core
+### `src/mail_listener/adapters/`
 
-`src/mail_ingress_kit/core/`
+Provider-specific implementations live here.
 
-Contains interfaces, orchestration primitives, and lifecycle concepts that should remain independent from any single provider.
+Current implementation:
 
-### Events
+- `gmail/idle.py` — packaged version of the existing Gmail IMAP IDLE daemon
 
-`src/mail_ingress_kit/events/`
+### `src/mail_listener/core/`
 
-Contains normalized event models and translation targets for downstream automation.
+Small reusable runtime pieces used by adapters:
 
-### Adapters
+- config loading
+- listener runtime stats
+- process/runtime path conventions
 
-`src/mail_ingress_kit/adapters/`
+### `src/mail_listener/events/`
 
-Contains provider-specific connectors such as IMAP, Gmail, or future API/webhook-based integrations.
+Normalized event models emitted by the current adapter.
 
-### Skills
+Current event model:
 
-`skills/`
+- `MailMessageReceivedEvent`
 
-Reserved for skill packages, prompts, descriptors, and agent-facing integration assets. The directory is intentionally top-level so it can be split into an independent repository later if needed.
+## Skill boundary
 
-## Current implementation note
+`skills/` remains top-level and intentionally light. It is preserved as a split-friendly boundary for future agent-facing packaging.
 
-A Gmail IMAP IDLE path has already been validated conceptually and should be documented as the first working adapter candidate. However, the repository should continue to describe itself as mail-ingress-oriented rather than Gmail-specific.
+## Non-goals for this round
 
-## TODO
+- no new provider adapters
+- no mail parsing pipeline
+- no workflow orchestration layer
+- no feature expansion beyond the existing Gmail IMAP IDLE behavior
 
-- define canonical event schema
-- define adapter contract and capability matrix
-- decide whether skills ship from this repository or a future companion repository
-- add tests for normalization and adapter compliance
+## Quality gate
+
+The repository is expected to pass:
+
+1. `ruff format --check .`
+2. `ruff check .`
+3. `pytest`

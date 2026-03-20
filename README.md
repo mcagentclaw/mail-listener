@@ -1,108 +1,275 @@
-# mail-ingress-kit
+# mail-listener
 
-A skill-first, adapter-friendly scaffold for **mail ingress**, **mailbox listening**, and **mail event delivery**.
+> Turn mailbox activity into durable events for agents, workflows, and automation.
 
-This repository is intentionally positioned as a **general mail ingress foundation**, not a Gmail-only project. The goal is to support multiple mailbox providers and ingestion patterns over time, while remaining friendly to both **human operators** and **agent runtimes** such as **OpenClaw**, **Codex**, and **Cloud Code**.
+`mail-listener` is an open-source foundation for teams that want to treat email as a real event source instead of a messy side channel.
+
+It helps you answer a deceptively hard question:
+
+**How do you keep a mailbox listener running reliably, detect new mail quickly, and hand that signal to agents or workflows without building everything from scratch?**
+
+Today, the repository ships with a validated **Gmail IMAP IDLE** implementation as the current adapter. The product direction is intentionally broader: `mail-listener` is meant to become a **provider-neutral mail listener layer** that can support more mailbox providers over time.
 
 ## Why this exists
 
-Many automation stacks need a clean way to:
+Email is still one of the main ingress channels in real systems.
 
-- watch one or more mailboxes
-- normalize incoming messages into events
-- route events into downstream skills, agents, or workflows
-- keep provider-specific code isolated behind adapters
+That is where many critical signals first appear:
 
-This scaffold creates the boundaries for that work without prematurely locking the project into one provider.
+- account verification and security notices
+- customer replies and shared inbox activity
+- invoices, receipts, and operational alerts
+- approval requests and platform notifications
+- workflow triggers from external systems
 
-## Current positioning
+The problem is that mailbox handling is usually built in the worst possible order:
 
-- **Project type:** foundation / scaffold
-- **Primary concern:** mailbox listener + mail ingress event pipeline
-- **Design style:** skill-first, adapter-oriented, agent-compatible
-- **Current known adapter note:** Gmail via IMAP IDLE has already been validated as a promising first adapter, but it is treated here as an implementation note, not as the product identity
+- first as throwaway scripts
+- then as polling jobs
+- then as a fragile “temporary” daemon
+- then as a provider-specific tangle no one wants to touch
 
-## Repository goals
+By the time a team wants to connect email to an agent or automation stack, the foundation is already brittle.
 
-- Keep the **core** reusable and provider-neutral
-- Make **skills/** easy to split into an independent repository later
-- Support both **human-facing documentation** and **agent-facing operating instructions**
-- Keep source code and runtime environment separate
+`mail-listener` focuses on fixing that **first mile**.
 
-## Initial structure
+It is not trying to be a giant workflow platform. It is trying to do one job well:
+
+> keep a mailbox listener alive, detect new mail with low latency, and emit a stable event boundary that other systems can trust.
+
+## What pain it solves
+
+`mail-listener` is for teams that are tired of one or more of these problems:
+
+- polling-based mailbox checks that are slow, noisy, and wasteful
+- mailbox listeners that die quietly after a reconnect or host restart
+- provider-specific scripts that cannot be reused elsewhere
+- agent systems that can *read* mail but lack a durable inbound event layer
+- automation projects where transport concerns and business logic are tangled together
+
+## Typical use cases
+
+You may want `mail-listener` if you need to:
+
+- monitor a shared inbox for new customer replies
+- detect verification emails from external platforms
+- watch for alerts, receipts, invoices, or notifications
+- trigger internal workflows when a mailbox changes
+- feed normalized mail events into bots, skills, task systems, or workflow engines
+- run mailbox listeners continuously on a laptop, workstation, server, or managed agent host
+
+## Why this matters for OpenClaw
+
+`mail-listener` fits naturally into **OpenClaw-style agent environments**.
+
+In many agent systems, the hard part is not only reasoning about incoming information — it is getting that information into the system in a clean, durable, and automatable way.
+
+That is where `mail-listener` fits.
+
+In an OpenClaw workflow, it can provide the missing boundary between the outside world and the agent layer:
+
+1. keep the mailbox listener running over time
+2. detect new-mail events with low latency
+3. normalize provider-specific behavior into a clean event model
+4. hand the event to OpenClaw agents, skills, routing, or downstream automation
+
+This makes it useful for scenarios like:
+
+- triggering an OpenClaw agent when a new operational email arrives
+- turning incoming email into structured events before business logic runs
+- feeding mailbox events into skills or orchestration pipelines
+- separating **mail ingress** from **reasoning, routing, and action**
+
+A simple way to think about the boundary is:
+
+- `mail-listener` handles **mail ingress**
+- OpenClaw handles **reasoning, routing, skills, and action**
+
+That separation is intentional.
+
+## mail-listener vs. OpenClaw cron jobs
+
+`mail-listener` and OpenClaw cron jobs solve different problems.
+
+### Use `mail-listener` when
+
+- you need to react to **mailbox changes**
+- you want **event-driven** behavior instead of scheduled polling
+- latency matters and you want to notice new mail soon after it arrives
+- email is the trigger, and agents or workflows should run **after** the mail event happens
+
+### Use OpenClaw cron when
+
+- you need something to run on a **schedule**
+- the trigger is time-based rather than mailbox-based
+- you want reminders, periodic checks, daily summaries, or recurring maintenance tasks
+- you are fine with a job running every N minutes / hours / days regardless of whether new mail arrived
+
+### Common pattern
+
+In OpenClaw-style systems, the two can work together:
+
+- `mail-listener` detects the new message
+- OpenClaw agents or workflows decide what to do next
+- cron handles follow-up jobs, retries, summaries, deadlines, or scheduled maintenance around that workflow
+
+A simple rule of thumb:
+
+- **new mail arrived** → `mail-listener`
+- **run this at 9:00 every day** → OpenClaw cron
+
+## Current status
+
+The current repository packages the already-validated **Gmail IMAP IDLE** implementation as the **current adapter**.
+
+Included today:
+
+- Gmail IMAP IDLE listener
+- long-running foreground daemon suitable for supervisor / launchd management
+- automatic reconnect with exponential backoff
+- rotating logs
+- PID lock file to avoid duplicate starts
+- `--check` secret validation
+- a normalized `mail.message.received` event shape for the current adapter
+- CI quality gates for formatting, linting, and smoke tests
+
+Not included yet:
+
+- OAuth-based mailbox auth flow
+- mail body parsing
+- attachment extraction
+- downstream workflow orchestration
+- production-ready adapters beyond the current Gmail implementation
+- full skill implementations
+
+So the project is already useful as a **mail listener foundation**, but it is not pretending to be a complete mail automation platform yet.
+
+## Who this is for
+
+`mail-listener` is for teams that need:
+
+- developers building mailbox-driven automation
+- teams wiring email into agent workflows
+- OpenClaw users who want a durable mail-ingress layer
+- operators who need a listener that can actually stay alive in the real world
+
+## Who this is not for
+
+`mail-listener` is probably not the right project if you need:
+
+- a full helpdesk product
+- a complete email parser and processor out of the box
+- an all-in-one workflow engine
+- a polished multi-provider platform today
+
+The current goal is narrower and more foundational.
+
+## Quick start
+
+```bash
+cd mail-listener
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e .[dev]
+```
+
+Validate the current mailbox secret configuration:
+
+```bash
+mail-listener --check
+```
+
+Run the current Gmail IMAP IDLE listener:
+
+```bash
+mail-listener
+```
+
+Verbose mode:
+
+```bash
+mail-listener --verbose
+```
+
+## Repository layout
 
 ```text
-mail-ingress-kit/
+mail-listener/
+├─ .github/workflows/ci.yml
 ├─ AGENTS.md
 ├─ LICENSE
 ├─ README.md
 ├─ README.zh-CN.md
-├─ pyproject.toml
-├─ .gitignore
+├─ deploy/
 ├─ docs/
-│  └─ architecture.md
 ├─ examples/
-│  └─ sample-event.json
 ├─ scripts/
-│  └─ bootstrap.sh
 ├─ skills/
-│  └─ README.md
-└─ src/
-   └─ mail_ingress_kit/
-      ├─ __init__.py
-      ├─ adapters/
-      │  └─ __init__.py
-      ├─ core/
-      │  └─ __init__.py
-      ├─ events/
-      │  └─ __init__.py
-      └─ skills/
-         └─ __init__.py
+├─ src/
+└─ tests/
 ```
 
-## Usage direction
+Key structure decisions:
 
-This repository is not yet a full implementation. It is a starting point for:
+- `src/` keeps the main source tree provider-neutral
+- `adapters/` isolates provider-specific listener logic
+- `events/` defines the event boundary downstream systems consume
+- `skills/` stays top-level so it can later be split into a standalone skill repository if needed
+- `AGENTS.md` is written for coding agents and maintainers, not end users
 
-1. defining a provider-neutral event model
-2. adding mailbox adapters
-3. wiring agent-consumable skills and command surfaces
-4. documenting safe local and CI usage
+## Quality gates
 
-## Local development
+The same gates run locally and in CI:
 
-Recommended pattern:
+```bash
+ruff format --check .
+ruff check .
+pytest
+```
 
-- keep source code in this repository
-- create runtime environments outside committed source where practical, or in ignored local directories such as `.venv/`
-- avoid storing secrets in tracked files
+## Current event shape
+
+The current adapter emits a normalized event payload like this:
+
+```json
+{
+  "event_type": "mail.message.received",
+  "provider": "gmail-imap-idle",
+  "mailbox": "listener@example.test",
+  "exists_count": 42,
+  "previous_exists_count": 41,
+  "received_at": "2026-03-20T04:00:00+00:00"
+}
+```
+
+## macOS runtime operations
+
+For the current Gmail IMAP IDLE implementation, the repository includes:
+
+- `scripts/gmail_idle_ctl.sh` for start / stop / status / logs
+- `deploy/com.mail-listener.gmail-imap-idle.plist` as a `launchd` template
 
 Example:
 
 ```bash
-cd mail-ingress-kit
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e .
+./scripts/gmail_idle_ctl.sh check
+./scripts/gmail_idle_ctl.sh start
+./scripts/gmail_idle_ctl.sh status
+./scripts/gmail_idle_ctl.sh logs
 ```
 
-## Near-term roadmap
+## Roadmap direction
 
-- define canonical mail event schema
-- add first adapter contract and lifecycle hooks
-- document Gmail IMAP IDLE as the first validated adapter note
-- add skill packaging conventions for standalone publishing
-- add tests and CI once implementation starts
+The long-term direction is not “Gmail only.”
 
-## Naming candidates
+The intended shape is:
 
-If the final repository name is still open, some reasonable options are:
+- one reusable mail-listener core
+- multiple provider adapters
+- stable mail-event contracts
+- optional skills and automation packages on top
 
-- `mail-ingress-kit`
-- `mail-event-bridge`
-- `mailbox-ingress`
-- `mail-listener-core`
-- `mail-adapter-kit`
+Gmail IMAP IDLE is simply the first validated adapter on that path.
 
 ## License
 
