@@ -1,5 +1,9 @@
 # mail-listener
 
+[![CI](https://github.com/mcagentclaw/mail-listener/actions/workflows/ci.yml/badge.svg)](https://github.com/mcagentclaw/mail-listener/actions/workflows/ci.yml)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.9%2B-blue)](pyproject.toml)
+
 > Turn mailbox activity into durable events for agents, workflows, and automation.
 
 `mail-listener` is an open-source foundation for teams that want to treat email as a real event source instead of a messy side channel.
